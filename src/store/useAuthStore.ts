@@ -36,7 +36,6 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ user: userData, isAuthenticated: true, isLoading: false });
     } catch (error) {
       // 401 Unauthorized 등이 발생하면 로그인되지 않은 것으로 간주
-      console.log('인증 실패(쿠키 만료 혹은 미로그인 상태)', error);
       set({ user: null, isAuthenticated: false, isLoading: false });
     }
   },

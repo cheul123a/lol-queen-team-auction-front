@@ -94,10 +94,9 @@ export default function Home() {
   const handlePrepareBidding = async () => {
     try {
       await api.post('/auction/prepare-bidding');
-      console.log('✅ 다음 입찰 준비 완료 요청 성공');
-      toast.success('다음 입찰 대상이 로드되었습니다.');
+      toast.success('다음 매물이 준비되었습니다.');
     } catch (error) {
-      console.error('❌ 입찰 준비 요청 실패:', error);
+      console.error('❌ 다음 입찰 준비 완료 요청 실패:', error);
     }
   };
 
@@ -105,7 +104,6 @@ export default function Home() {
   const handleStartBidding = async () => {
     try {
       await api.post('/auction/start-bidding');
-      console.log('✅ 경매 시작 요청 성공');
       toast.success('경매가 시작되었습니다!');
     } catch (error) {
       console.error('❌ 경매 시작 요청 실패:', error);
@@ -116,7 +114,6 @@ export default function Home() {
   const handleChangeToPlayerAuction = async () => {
     try {
       await api.post('/auction/change-to-player-auction');
-      console.log('✅ 플레이어 경매 전환 요청 성공');
       toast.success('플레이어 경매로 전환되었습니다!');
     } catch (error) {
       console.error('❌ 플레이어 경매 전환 요청 실패:', error);
@@ -127,11 +124,10 @@ export default function Home() {
   const handleBid = async (amount: number) => {
     try {
       await api.post('/auction/bid', { bidPoint: amount });
-      console.log(`✅ 입찰 요청 성공: ${amount}pt`);
       // 성공 후에는 굳이 입력창을 비우지 않거나, 상황에 따라 비울 수 있습니다.
       // 여기서는 다음 입찰을 위해 일단 유지하거나 비우는 것을 선택할 수 있는데, 
-      // 비우면 다음 버튼 클릭 시 highestBid 기준으로 올라가도록 설계합니다.
-      setCustomBid(""); 
+      // 깔끔함을 위해 비웁니다.
+      setCustomBid("");
     } catch (error) {
       console.error('❌ 입찰 요청 실패:', error);
     }

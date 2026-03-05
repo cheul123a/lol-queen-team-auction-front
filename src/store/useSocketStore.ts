@@ -32,14 +32,12 @@ export const useSocketStore = create<SocketState>((set, get) => ({
       heartbeatOutgoing: 4000,
       
       onConnect: () => {
-        console.log('✅ STOMP: 웹소켓 연결 성공');
         set({ isConnected: true });
 
         // 공통 메시지 핸들러 함수
         const handleMessage = (message: IMessage) => {
           try {
             const data = JSON.parse(message.body);
-            console.log('📥 소켓 메시지 수신:', data);
 
             // 이벤트 타입에 따른 전역 상태 업데이트
             const type = data.messageType || data.type; 
@@ -115,7 +113,6 @@ export const useSocketStore = create<SocketState>((set, get) => ({
         client.subscribe('/user/sub/auction', handleMessage);
       },
       onDisconnect: () => {
-        console.log('❌ STOMP: 웹소켓 연결 종료');
         set({ isConnected: false });
       },
       onStompError: (frame) => {
