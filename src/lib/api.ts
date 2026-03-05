@@ -43,14 +43,10 @@ api.interceptors.response.use(
       if (errorData.title || errorData.detail) {
         // detail이 있으면 detail을, 없으면 title을 표시
         const message = errorData.detail || errorData.title;
-        // 커스텀 에러 코드가 있으면 표시 (예: AU0001)
-        const errorCode = errorData.errorCode ? `에러 코드: ${errorData.errorCode}` : `HTTP 상태: ${error.response.status}`;
         
         // 401 Unauthorized 제외 (Auth 체크용 등은 조용히 넘어가기 위해)
         if (error.response.status !== 401) {
-           toast.error(message, {
-             description: errorCode
-           });
+           toast.error(message);
         }
       } else {
         // ProblemDetail 형식이 아닌 일반 에러일 경우
