@@ -87,7 +87,7 @@ export default function Home() {
 
   // 권한별 제어를 위한 변수
   const isAdmin = user?.role === "ADMIN";
-  const canBid = user?.role === "QUEEN" || user?.role === "LEADER" || user?.role === "ADMIN";
+  const canBid = user?.role === "QUEEN" || user?.role === "PRINCESS" || user?.role === "LEADER" || user?.role === "ADMIN";
   // 경매가 진행중일때만 입찰 버튼 활성화
   const isBiddingActive = canBid && status === 'IN_PROGRESS';
 
