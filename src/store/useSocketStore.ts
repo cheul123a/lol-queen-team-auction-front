@@ -65,7 +65,7 @@ export const useSocketStore = create<SocketState>((set, get) => ({
               }
               case 'BIDDING_END': {
                 // 입찰 종료 이벤트
-                useAuctionStore.getState().setAuctionStatus('CLOSED');
+                useAuctionStore.getState().clearBiddingInfo();
                 const msg = typeof payload === 'string' ? payload : payload?.message;
                 if (msg) {
                   useAuctionStore.getState().addLogMessage(msg, true);

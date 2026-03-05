@@ -51,6 +51,7 @@ interface AuctionState {
   setAuctionStatus: (status: 'WAITING' | 'PREPARED' | 'IN_PROGRESS' | 'CLOSED', bidRemainSeconds?: number) => void;
   setAuctionType: (type: 'LEADER_AUCTION' | 'PLAYER_AUCTION' | 'FINISHED') => void;
   updateBiddingInfo: (info: BiddingInfo) => void;
+  clearBiddingInfo: () => void;
   updatePlayersInfo: (info: { teamInfo: TeamInfo[], playerInfo: MemberInfo[] }) => void;
   addLogMessage: (message: string, isSystem?: boolean) => void;
   clearLogs: () => void;
@@ -74,6 +75,14 @@ export const useAuctionStore = create<AuctionState>((set) => ({
   })),
 
   setAuctionType: (type) => set({ auctionType: type }),
+
+  clearBiddingInfo: () => set({
+    currentTarget: null,
+    highestBid: 0,
+    highestBidder: null,
+    bidRemainSeconds: null,
+    status: 'CLOSED'
+  }),
   
   updateBiddingInfo: (info) => set((state) => {
     // 만약 서버에서 info 자체를 null 로 보내면(경매가 초기화된 상태 등), 관련 상태를 모두 비웁니다.
