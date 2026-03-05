@@ -1,0 +1,148 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "lol-queen-team-auction",
+    "description": "lol-queen-team-auction",
+    "version": "0.0.1"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:28281",
+      "description": "Generated server url"
+    }
+  ],
+  "tags": [
+    {
+      "name": "유저",
+      "description": "유저 관련 API"
+    },
+    {
+      "name": "경매",
+      "description": "경매 관련 API"
+    }
+  ],
+  "paths": {
+    "/api/v1/auction/start-bidding": {
+      "post": {
+        "tags": [
+          "경매"
+        ],
+        "summary": "입찰 시작",
+        "description": "입찰을 시작한다. 요청이 오면 5초뒤 입찰이 시작된다.",
+        "operationId": "startBidding",
+        "responses": {
+          "200": {
+            "description": "요청 성공"
+          }
+        }
+      }
+    },
+    "/api/v1/auction/prepare-bidding": {
+      "post": {
+        "tags": [
+          "경매"
+        ],
+        "summary": "다음 입찰 준비",
+        "description": "다음 입찰 대상을 로드한다.\n\n 입찰 대상이 없는경우 에러가 발생한다.(404)",
+        "operationId": "prepareBidding",
+        "responses": {
+          "200": {
+            "description": "요청 성공"
+          }
+        }
+      }
+    },
+    "/api/v1/users/me": {
+      "get": {
+        "tags": [
+          "유저"
+        ],
+        "summary": "내 정보 조회",
+        "description": "요청한 사용자의 정보를 조회한다.",
+        "operationId": "getMyInfo",
+        "responses": {
+          "200": {
+            "description": "조회 성공",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetMyInfoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/chzzk-login": {
+      "get": {
+        "tags": [
+          "auth-controller"
+        ],
+        "operationId": "chzzkLogin",
+        "parameters": [
+          {
+            "name": "request",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ChzzkLoginRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {}
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "GetMyInfoResponse": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "chzzkName": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "ADMIN",
+              "QUEEN",
+              "PRINCESS",
+              "LEADER",
+              "PLAYER"
+            ]
+          }
+        }
+      },
+      "ChzzkLoginRequest": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "치지직 로그인 후 받은 code",
+            "minLength": 1
+          },
+          "state": {
+            "type": "string",
+            "description": "치지직 로그인시 사용한 state",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "code",
+          "state"
+        ],
+        "title": "치지직 로그인 요청 DTO"
+      }
+    }
+  }
+}
