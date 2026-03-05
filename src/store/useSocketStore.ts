@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { Client } from '@stomp/stompjs';
 import type { IMessage } from '@stomp/stompjs';
 import { useAuctionStore } from './useAuctionStore';
+import confetti from 'canvas-confetti';
 
 interface SocketState {
   client: Client | null;
@@ -69,6 +70,16 @@ export const useSocketStore = create<SocketState>((set, get) => ({
                 const msg = typeof payload === 'string' ? payload : payload?.message;
                 if (msg) {
                   useAuctionStore.getState().addLogMessage(msg, true);
+                  // 메시지에 '낙찰'이 포함되어 있으면 폭죽 효과 실행
+                  if (msg.includes('낙찰')) {
+                    confetti({
+                      particleCount: 150,
+                      spread: 80,
+                      origin: { y: 0.6 },
+                      colors: ['#10b981', '#fbbf24', '#f59e0b', '#3b82f6'],
+                      zIndex: 9999,
+                    });
+                  }
                 }
                 break;
               }
