@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo, useCallback } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useSocketStore } from "@/store/useSocketStore";
 import { useAuctionStore } from "@/store/useAuctionStore";
@@ -27,7 +27,7 @@ const translatePosition = (position: string) => {
 };
 
 // 팀원(팀장+플레이어) 정보를 렌더링하는 헬퍼 컴포넌트 (매 초 렌더링 방지를 위해 Home 밖으로 분리)
-const TeamMemberRow = ({ name, position, tier, isCaptain = false, imgUrl }: { name: string, position: string, tier: string, isCaptain?: boolean, imgUrl: string | null }) => (
+const TeamMemberRow = memo(({ name, position, tier, isCaptain = false, imgUrl }: { name: string, position: string, tier: string, isCaptain?: boolean, imgUrl: string | null }) => (
   <div className="flex items-center gap-2 p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
     <Avatar className={`w-8 h-8 ${isCaptain ? 'border-2 border-amber-400' : 'border border-slate-200 dark:border-slate-700'}`}>
       <AvatarImage src={imgUrl || "/default.png"} className="object-cover" />
@@ -44,7 +44,8 @@ const TeamMemberRow = ({ name, position, tier, isCaptain = false, imgUrl }: { na
       </div>
     </div>
   </div>
-);
+));
+TeamMemberRow.displayName = 'TeamMemberRow';
 
 export default function Home() {
   const { user, logout } = useAuthStore();
@@ -121,7 +122,7 @@ export default function Home() {
   };
 
   // 입찰 API 호출
-  const handleBid = async (amount: number) => {
+  const handleBid = useCallback(async (amount: number) => {
     try {
       await api.post('/auction/bid', { bidPoint: amount });
       // 성공 후에는 굳이 입력창을 비우지 않거나, 상황에 따라 비울 수 있습니다.
@@ -131,7 +132,7 @@ export default function Home() {
     } catch (error) {
       console.error('❌ 입찰 요청 실패:', error);
     }
-  };
+  }, []);
 
   // 금액 추가 버튼 클릭 핸들러
   const handleAddAmount = (addValue: number) => {
