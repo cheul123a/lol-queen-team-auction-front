@@ -34,7 +34,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const userData = response.data;
       
       set({ user: userData, isAuthenticated: true, isLoading: false });
-    } catch (error) {
+    } catch {
       // 401 Unauthorized 등이 발생하면 로그인되지 않은 것으로 간주
       set({ user: null, isAuthenticated: false, isLoading: false });
     }

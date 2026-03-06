@@ -34,7 +34,7 @@ export interface TeamInfo {
 
 interface AuctionState {
   // 경매장 전역 상태
-  status: 'WAITING' | 'PREPARED' | 'IN_PROGRESS' | 'CLOSED';
+  status: 'WAITING' | 'PREPARED' | 'COUNTDOWN' | 'IN_PROGRESS' | 'CLOSED';
   auctionType: 'LEADER_AUCTION' | 'PLAYER_AUCTION' | 'FINISHED'; // 현재 경매 타입 (팀장 경매, 플레이어 경매, 종료)
   currentTarget: AuctionTarget | null; // 현재 매물 정보
   highestBid: number;
@@ -48,7 +48,7 @@ interface AuctionState {
   unbidPlayers: MemberInfo[]; // 유찰된 매물 목록
   
   // 상태 업데이트 액션들
-  setAuctionStatus: (status: 'WAITING' | 'PREPARED' | 'IN_PROGRESS' | 'CLOSED', bidRemainSeconds?: number) => void;
+  setAuctionStatus: (status: 'WAITING' | 'PREPARED' | 'COUNTDOWN' | 'IN_PROGRESS' | 'CLOSED', bidRemainSeconds?: number) => void;
   setAuctionType: (type: 'LEADER_AUCTION' | 'PLAYER_AUCTION' | 'FINISHED') => void;
   updateBiddingInfo: (info: BiddingInfo) => void;
   clearBiddingInfo: () => void;

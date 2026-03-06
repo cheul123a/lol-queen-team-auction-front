@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { AdminTeamAssignmentDialog } from "@/components/AdminTeamAssignmentDialog";
@@ -65,14 +64,15 @@ export default function Home() {
     setCustomBid("");
   }, [currentTarget?.targetName]);
 
-  // 경매 상태가 IN_PROGRESS로 바뀌거나 입찰/새로고침으로 bidRemainSeconds가 갱신될 때 타이머 동작
+  // 경매 상태가 IN_PROGRESS 또는 COUNTDOWN 으로 바뀌거나 입찰/새로고침으로 bidRemainSeconds가 갱신될 때 타이머 동작
   useEffect(() => {
-    if (status === 'IN_PROGRESS') {
+    if (status === 'IN_PROGRESS' || status === 'COUNTDOWN') {
       // 서버에서 보내준 남은 초를 전적으로 신뢰하여 타이머 세팅 (기기 시간 완전 배제)
       // 새로운 입찰(highestBid 갱신)이 발생하면 같은 15초라도 useEffect가 재실행되어 타이머 리셋됨
-      const secondsToRun = typeof bidRemainSeconds === 'number' ? bidRemainSeconds : 15;
+      const defaultSeconds = status === 'COUNTDOWN' ? 5 : 15;
+      const secondsToRun = typeof bidRemainSeconds === 'number' ? bidRemainSeconds : defaultSeconds;
       startOrReset(secondsToRun);
-    } else if (status === 'CLOSED' || status === 'WAITING') {
+    } else if (status === 'CLOSED' || status === 'WAITING' || status === 'PREPARED') {
       stopTimer();
     }
   }, [status, bidRemainSeconds, highestBid, startOrReset, stopTimer]);
@@ -145,17 +145,18 @@ export default function Home() {
   };
 
   return (
-    <div className="flex min-h-[900px] w-full bg-slate-50 dark:bg-slate-950 p-4 gap-4">
+    <div className="min-h-screen overflow-x-auto bg-slate-100/80 p-3 dark:bg-slate-950">
+      <div className="mx-auto grid min-h-[calc(100vh-1.5rem)] min-w-[1365px] max-w-[1880px] grid-cols-[240px_minmax(0,1fr)] gap-3">
       
       {/* 1. 왼쪽 사이드바 (팀 상태 영역) */}
-      <Card className="w-80 flex flex-col border-emerald-200 shadow-sm bg-white dark:bg-slate-900 shrink-0 h-[calc(100vh-2rem)] sticky top-4">
+      <Card className="flex h-[calc(100vh-1.5rem)] flex-col border-emerald-200 bg-white shadow-sm dark:bg-slate-900">
         <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800 flex flex-row items-center justify-between">
           <CardTitle className="text-lg font-bold text-emerald-800 dark:text-emerald-400">참가 팀 현황</CardTitle>
           <Button variant="ghost" size="sm" onClick={logout} className="text-xs text-slate-400">
             로그아웃
           </Button>
         </CardHeader>
-        <ScrollArea className="flex-1 p-3">
+        <div className="min-h-0 flex-1 overflow-y-auto p-3">
           <div className="space-y-4">
             {teams.length === 0 ? (
               <div className="text-center py-10 text-slate-400 text-sm">
@@ -235,30 +236,30 @@ export default function Home() {
               })
             )}
           </div>
-        </ScrollArea>
+        </div>
       </Card>
 
       {/* 메인 콘텐츠 영역 (중앙 상/하단) */}
-      <div className="flex-1 flex flex-col gap-4 min-w-0">
+      <div className="grid min-h-0 grid-rows-[auto_minmax(0,1fr)_300px] gap-3">
         
         {/* 상단 관리자 전용 컨트롤 패널 (ADMIN일 때만 보임) */}
         {isAdmin && (
-          <div className="bg-slate-800 text-slate-200 p-3 rounded-lg flex items-center justify-between shadow-sm border border-slate-700">
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-700 bg-slate-800 p-3 text-slate-200 shadow-sm">
             <div className="flex items-center gap-2">
               <span className="font-bold text-amber-400">🛡️ 관리자 패널</span>
               <span className="text-sm text-slate-400">경매 진행을 제어합니다.</span>
             </div>
-            <div className="flex gap-2">
+            <div className="flex shrink-0 items-center gap-2">
               <AdminTeamAssignmentDialog />
               {auctionType === 'LEADER_AUCTION' && (
-                <Button onClick={handleChangeToPlayerAuction} variant="destructive" className="font-bold">
+                <Button onClick={handleChangeToPlayerAuction} variant="destructive" className="font-bold whitespace-nowrap">
                   플레이어 경매로 전환
                 </Button>
               )}
-              <Button onClick={handlePrepareBidding} variant="outline" className="text-slate-800">
+              <Button onClick={handlePrepareBidding} variant="outline" className="text-slate-800 whitespace-nowrap">
                 다음 매물 준비
               </Button>
-              <Button onClick={handleStartBidding} className="bg-blue-600 hover:bg-blue-700 text-white font-bold">
+              <Button onClick={handleStartBidding} className="bg-blue-600 hover:bg-blue-700 text-white font-bold whitespace-nowrap">
                 경매 시작하기
               </Button>
             </div>
@@ -266,29 +267,29 @@ export default function Home() {
         )}
 
         {/* 상단 (현재 경매 영역) */}
-        <div className="flex-1 flex gap-4 min-h-[400px]">
+        <div className="grid h-full min-h-0 grid-cols-[360px_minmax(0,1fr)] gap-3">
           
           {/* 2-1. 현재 입찰 대상 프로필 */}
-          <Card className="w-1/3 flex flex-col items-center justify-center p-4 border-emerald-300 border-2 bg-emerald-50/50 dark:bg-slate-900 shadow-md relative overflow-hidden">
+          <Card className="relative flex h-full min-h-0 flex-col items-center overflow-hidden border-2 border-emerald-300 bg-emerald-50/50 px-4 pb-3 pt-16 shadow-md dark:bg-slate-900">
             {/* 장식용 코너 스타일 (스케치 반영) */}
             <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-emerald-500 rounded-tl-xl m-2 opacity-50"></div>
             <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-emerald-500 rounded-tr-xl m-2 opacity-50"></div>
             
-            <Badge className={`absolute top-4 text-sm px-3 py-1 mb-2 shadow-sm ${status === 'IN_PROGRESS' ? 'bg-emerald-600 hover:bg-emerald-700 animate-pulse' : 'bg-slate-500 hover:bg-slate-600'}`}>
-              {status === 'WAITING' ? '대기 중' : status === 'PREPARED' ? '입찰 대기' : status === 'CLOSED' ? '종료됨' : '경매 진행중'}
+            <Badge className={`absolute top-4 text-sm px-3 py-1 mb-2 shadow-sm ${status === 'IN_PROGRESS' || status === 'COUNTDOWN' ? 'bg-emerald-600 hover:bg-emerald-700 animate-pulse' : 'bg-slate-500 hover:bg-slate-600'}`}>
+              {status === 'WAITING' ? '대기 중' : status === 'PREPARED' ? '입찰 대기' : status === 'COUNTDOWN' ? '시작 대기중' : status === 'CLOSED' ? '종료됨' : '경매 진행중'}
             </Badge>
 
             {currentTarget ? (
               <>
-                <Avatar className="w-36 h-36 border-4 border-white shadow-xl mt-6 mb-4">
+                <Avatar className="mb-3 h-32 w-32 border-4 border-white shadow-xl">
                   <AvatarImage src={currentTarget.targetImgUrl || "/default.png"} className="object-cover" />
                   <AvatarFallback className="text-3xl bg-slate-100 text-slate-500">?</AvatarFallback>
                 </Avatar>
                 
-                <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight">
+                <h2 className="mb-2 text-center text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
                   {currentTarget.targetName}
                 </h2>
-                <div className="flex gap-2 mb-4">
+                <div className="mb-3 flex gap-2">
                   <Badge variant="outline" className="text-base py-0.5 px-2 border-emerald-200 bg-white dark:bg-slate-800">
                     {translatePosition(currentTarget.targetPosition)}
                   </Badge>
@@ -302,9 +303,9 @@ export default function Home() {
               </div>
             )}
 
-            <div className="w-full bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-center shadow-inner mt-auto">
+            <div className="w-full rounded-xl border border-slate-200 bg-white p-3 text-center shadow-inner dark:border-slate-700 dark:bg-slate-800">
               <p className="text-xs text-slate-500 mb-1">현재 최고 입찰</p>
-              <div className="text-3xl font-black text-emerald-600 dark:text-emerald-400">
+              <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
                 {highestBid} <span className="text-base font-bold text-slate-400">pt</span>
               </div>
               <p className="text-base font-extrabold text-slate-800 dark:text-slate-200 mt-1.5 h-6 flex items-center justify-center">
@@ -314,37 +315,40 @@ export default function Home() {
           </Card>
 
           {/* 2-2. 경매 진행 보드 (로그 & 입찰 버튼) */}
-          <Card className="flex-1 flex flex-col shadow-md border-slate-200 dark:border-slate-800">
+          <Card className="flex h-full min-h-0 flex-col overflow-hidden border-slate-200 shadow-md dark:border-slate-800">
             <CardHeader className="bg-slate-100 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 py-2">
               <CardTitle className="text-base flex justify-between items-center">
                 <span>실시간 입찰 보드</span>
                 {status === 'IN_PROGRESS' && <Badge variant="destructive" className="animate-pulse text-xs">진행중</Badge>}
+                {status === 'COUNTDOWN' && <Badge variant="destructive" className="bg-amber-500 hover:bg-amber-600 animate-pulse text-xs">시작 대기중</Badge>}
               </CardTitle>
             </CardHeader>
             
             {/* 입찰 로그 */}
-            <ScrollArea className="flex-1 p-3 bg-white dark:bg-slate-950">
-              <div className="space-y-2">
-                {status === 'WAITING' && <div className="text-xs text-slate-500 text-center py-6">경매 대기 중입니다.</div>}
-                {status === 'PREPARED' && <div className="text-xs text-emerald-600 font-bold text-center py-6">다음 매물이 준비되었습니다! 경매 시작을 기다려주세요.</div>}
+            <div className="min-h-0 flex-1 overflow-hidden bg-white dark:bg-slate-950">
+              <div className="h-full overflow-y-auto p-3">
+                <div className="space-y-2">
+                  {!bidLogs.length && status === 'WAITING' && <div className="text-xs text-slate-500 text-center py-6">경매 대기 중입니다.</div>}
+                  {!bidLogs.length && status === 'PREPARED' && <div className="text-xs text-emerald-600 font-bold text-center py-6">다음 매물이 준비되었습니다! 경매 시작을 기다려주세요.</div>}
                 
-                {bidLogs.map((log, idx) => (
-                  <div key={idx} className={`p-2 rounded-lg border text-sm leading-tight ${log.isSystem ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 text-amber-800 dark:text-amber-300 font-semibold text-center' : 'bg-slate-50 dark:bg-slate-900 border-slate-100'}`}>
-                    {log.message.split('\n').map((line: string, i: number) => (
-                      <span key={i} className="block">
-                        {line}
-                      </span>
-                    ))}
-                  </div>
-                ))}
+                  {bidLogs.map((log, idx) => (
+                    <div key={`${log.time}-${idx}`} className={`p-2 rounded-lg border text-sm leading-tight ${log.isSystem ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 text-amber-800 dark:text-amber-300 font-semibold text-center' : 'bg-slate-50 dark:bg-slate-900 border-slate-100'}`}>
+                      {log.message.split('\n').map((line: string, i: number) => (
+                        <span key={i} className="block">
+                          {line}
+                        </span>
+                      ))}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </ScrollArea>
+            </div>
 
             {/* 입찰 컨트롤 */}
             <div className="p-3 bg-slate-100 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
               {isBiddingActive ? (
                 <div className="flex flex-col gap-2">
-                  <div className="flex gap-2">
+                  <div className="grid grid-cols-4 gap-2">
                     <Button onClick={() => handleAddAmount(5)} variant="outline" className="flex-1 h-10 text-sm font-bold border-emerald-500 text-emerald-700 hover:bg-emerald-50">+ 5</Button>
                     <Button onClick={() => handleAddAmount(10)} variant="outline" className="flex-1 h-10 text-sm font-bold border-emerald-500 text-emerald-700 hover:bg-emerald-50">+ 10</Button>
                     <Button onClick={() => handleAddAmount(50)} variant="outline" className="flex-1 h-10 text-sm font-bold border-emerald-500 text-emerald-700 hover:bg-emerald-50">+ 50</Button>
@@ -384,7 +388,7 @@ export default function Home() {
         </div>
 
         {/* 3. 하단 (대기열 및 타이머 영역) */}
-        <div className="h-80 flex gap-4 shrink-0">
+        <div className="grid h-[300px] shrink-0 grid-cols-[minmax(0,1fr)_240px] gap-3">
           
           {/* 3-1. 대기칸 (세로 스크롤) */}
           <Card className="flex-1 flex flex-col border-emerald-200 shadow-sm bg-emerald-50/30 dark:bg-slate-900 overflow-hidden min-h-0">
@@ -393,25 +397,25 @@ export default function Home() {
             </div>
             {/* Flexbox 제약조건을 완벽히 지키는 순수 CSS 세로 스크롤 */}
             <div className="flex-1 overflow-y-auto min-h-0 p-4">
-              <div className={auctionType === 'PLAYER_AUCTION' || auctionType === 'FINISHED' ? "flex w-full justify-between gap-4 pb-2" : "flex flex-wrap gap-4 pb-2"}>
+              <div className={auctionType === 'PLAYER_AUCTION' || auctionType === 'FINISHED' ? "grid w-full grid-cols-[repeat(5,minmax(0,1fr))_1px_minmax(0,1fr)] gap-3 pb-2" : "flex flex-wrap gap-4 pb-2"}>
                 {auctionType === 'PLAYER_AUCTION' || auctionType === 'FINISHED' ? (
                   // 플레이어 경매: 포지션별 세로 정렬 및 유찰자 컬럼 추가 (waitingPlayers가 0이어도 유찰자가 있을 수 있으므로 무조건 렌더링)
                   <>
                     {['TOP', 'JUNGLE', 'MIDDLE', 'BOT', 'SUPPORT'].map(pos => {
                       const playersInPos = waitingPlayers.filter(p => p.position === pos);
                       return (
-                        <div key={pos} className="flex-1 flex flex-col gap-3 items-center min-w-0">
+                        <div key={pos} className="flex min-w-0 flex-col items-center gap-3">
                           <div className="text-xs font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">{translatePosition(pos)}</div>
                           {playersInPos.length > 0 ? playersInPos.map((waiter, idx) => (
-                            <div key={idx} className="w-full max-w-[140px] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 flex flex-col items-center justify-center shadow-sm hover:shadow-md transition-shadow">
+                            <div key={idx} className="flex w-full max-w-[152px] flex-col items-center justify-center rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition-shadow hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
                               <Avatar className="w-12 h-12 mb-2 border border-slate-100">
                                 <AvatarImage src={waiter.imgUrl || "/default.png"} className="object-cover" />
                                 <AvatarFallback className="bg-slate-100 text-[10px] text-slate-500">대기</AvatarFallback>
                               </Avatar>
                               <div className="text-sm font-bold text-slate-800 dark:text-slate-200 w-full text-center truncate">{waiter.chzzkName}</div>
-                              <div className="flex gap-1 mt-1 justify-center w-full">
+                              <div className="mt-1 flex flex-wrap justify-center gap-1 w-full">
                                 <span className="text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded">{translatePosition(waiter.position)}</span>
-                                <span className="text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded truncate max-w-[50px]">{waiter.tier}</span>
+                                <span className="max-w-full break-keep text-center text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded">{waiter.tier}</span>
                               </div>
                             </div>
                           )) : (
@@ -421,20 +425,19 @@ export default function Home() {
                       );
                     })}
 
-                    {/* 유찰자 컬럼 (오른쪽 끝) */}
-                    <div className="w-px bg-slate-200 dark:bg-slate-700 mx-1 shrink-0 hidden md:block"></div>
-                    <div className="flex-1 flex flex-col gap-3 items-center min-w-0 bg-slate-50/50 dark:bg-slate-900/50 rounded-xl px-2 pb-2">
+                    <div className="mx-1 w-px shrink-0 bg-slate-200 dark:bg-slate-700"></div>
+                    <div className="flex min-w-0 flex-col items-center gap-3 rounded-xl bg-slate-50/50 px-2 pb-2 dark:bg-slate-900/50">
                       <div className="text-xs font-bold text-white bg-slate-500 dark:bg-slate-600 px-3 py-1 rounded-full mt-1">유찰</div>
                       {unbidPlayers.length > 0 ? unbidPlayers.map((waiter, idx) => (
-                        <div key={`unbid-${idx}`} className="w-full max-w-[140px] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 flex flex-col items-center justify-center shadow-sm hover:shadow-md transition-shadow">
+                        <div key={`unbid-${idx}`} className="flex w-full max-w-[152px] flex-col items-center justify-center rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition-shadow hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
                           <Avatar className="w-12 h-12 mb-2 border border-slate-100">
                             <AvatarImage src={waiter.imgUrl || "/default.png"} className="object-cover" />
                             <AvatarFallback className="bg-slate-100 text-[10px] text-slate-500">유찰</AvatarFallback>
                           </Avatar>
                           <div className="text-sm font-bold text-slate-800 dark:text-slate-300 w-full text-center truncate">{waiter.chzzkName}</div>
-                          <div className="flex gap-1 mt-1 justify-center w-full">
+                          <div className="mt-1 flex flex-wrap justify-center gap-1 w-full">
                             <span className="text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded">{translatePosition(waiter.position)}</span>
-                            <span className="text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded truncate max-w-[50px]">{waiter.tier}</span>
+                            <span className="max-w-full break-keep text-center text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded">{waiter.tier}</span>
                           </div>
                         </div>
                       )) : (
@@ -448,15 +451,15 @@ export default function Home() {
                     <div className="text-slate-400 text-sm italic py-4 w-full text-center">대기 중인 매물이 없습니다.</div>
                   ) : (
                     waitingPlayers.map((waiter, idx) => (
-                      <div key={idx} className="w-32 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 flex flex-col items-center justify-center shadow-sm hover:shadow-md transition-shadow shrink-0">
+                      <div key={idx} className="w-[152px] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 flex flex-col items-center justify-center shadow-sm hover:shadow-md transition-shadow shrink-0">
                         <Avatar className="w-14 h-14 mb-2 border border-slate-100">
                           <AvatarImage src={waiter.imgUrl || "/default.png"} className="object-cover" />
                           <AvatarFallback className="bg-slate-100 text-xs text-slate-500">대기</AvatarFallback>
                         </Avatar>
                         <div className="text-sm font-bold text-slate-800 dark:text-slate-200 w-full text-center truncate">{waiter.chzzkName}</div>
-                        <div className="flex gap-1 mt-1 justify-center w-full">
+                        <div className="mt-1 flex flex-wrap justify-center gap-1 w-full">
                           <span className="text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded">{translatePosition(waiter.position)}</span>
-                          <span className="text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded truncate max-w-[50px]">{waiter.tier}</span>
+                          <span className="max-w-full break-keep text-center text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded">{waiter.tier}</span>
                         </div>
                       </div>
                     ))
@@ -467,16 +470,16 @@ export default function Home() {
           </Card>
 
           {/* 3-2. 타이머 영역 */}
-          <Card className="w-72 border-2 border-emerald-400 shadow-md bg-white dark:bg-slate-900 flex flex-col items-center justify-center relative overflow-hidden group">
+          <Card className="group relative flex flex-col items-center justify-center overflow-hidden border-2 border-emerald-400 bg-white shadow-md dark:bg-slate-900">
              {/* 타이머 진행바 (배경 애니메이션 효과용) */}
-            <div 
-              className="absolute bottom-0 left-0 h-1 bg-emerald-500 transition-all duration-100" 
-              style={{ width: status === 'IN_PROGRESS' && timeLeft > 0 ? `${(timeLeft / 15) * 100}%` : '0%' }}
+            <div
+              className="absolute bottom-0 left-0 h-1 bg-emerald-500 transition-all duration-100"
+              style={{ width: (status === 'IN_PROGRESS' || status === 'COUNTDOWN') && timeLeft > 0 ? `${(timeLeft / (status === 'COUNTDOWN' ? 5 : 15)) * 100}%` : '0%' }}
             ></div>
-            
-            <p className="text-slate-500 dark:text-slate-400 font-medium mb-1 tracking-widest">남은 시간</p>
-            <div className={`text-6xl font-black tabular-nums tracking-tighter flex items-center gap-2 ${timeLeft <= 3 && status === 'IN_PROGRESS' ? 'text-red-500 animate-pulse' : 'text-slate-900 dark:text-white'}`}>
-              {status === 'IN_PROGRESS' ? (
+
+            <p className="text-slate-500 dark:text-slate-400 font-medium mb-1 tracking-widest">{status === 'COUNTDOWN' ? '경매 시작까지' : '남은 시간'}</p>
+            <div className={`flex items-center gap-2 text-5xl font-black tabular-nums tracking-tighter ${timeLeft <= 3 && (status === 'IN_PROGRESS' || status === 'COUNTDOWN') ? 'text-red-500 animate-pulse' : 'text-slate-900 dark:text-white'}`}>
+              {status === 'IN_PROGRESS' || status === 'COUNTDOWN' ? (
                 <>
                   {formattedTime.m}<span className={`${timeLeft > 0 ? 'text-emerald-500 animate-pulse' : 'text-slate-300'}`}>:</span>{formattedTime.s}
                 </>
@@ -485,11 +488,11 @@ export default function Home() {
               )}
             </div>
             <p className="text-sm text-emerald-600 dark:text-emerald-400 font-bold mt-2 bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1 rounded-full">
-              {status === 'IN_PROGRESS' ? '입찰이 진행 중입니다' : status === 'CLOSED' ? '종료됨' : '대기 중'}
-            </p>
-          </Card>
+              {status === 'IN_PROGRESS' ? '입찰이 진행 중입니다' : status === 'COUNTDOWN' ? '곧 경매가 시작됩니다' : status === 'CLOSED' ? '종료됨' : '대기 중'}
+            </p>          </Card>
         </div>
       </div>
+    </div>
     </div>
   );
 }

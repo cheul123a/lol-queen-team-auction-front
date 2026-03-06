@@ -52,6 +52,15 @@ export const useSocketStore = create<SocketState>((set, get) => ({
                 }
                 break;
               }
+              case 'PREPARE_BIDDING': {
+                // 입찰 시작 전 대기(카운트다운) 이벤트
+                useAuctionStore.getState().setAuctionStatus('COUNTDOWN', 5); // 5초 대기
+                const msg = typeof payload === 'string' ? payload : payload?.message;
+                if (msg) {
+                  useAuctionStore.getState().addLogMessage(msg, true);
+                }
+                break;
+              }
               case 'BIDDING_STARTED': {
                 // 입찰 시작 이벤트
                 useAuctionStore.getState().setAuctionStatus('IN_PROGRESS', payload?.bidRemainSeconds);
