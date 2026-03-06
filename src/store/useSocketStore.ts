@@ -13,6 +13,12 @@ interface SocketState {
 }
 
 const getWebSocketUrl = () => {
+  // 운영 환경(.env.production)에서 명시적 WS URL이 주어지면 그것을 사용 (예: wss://api.es-auction.com/ws)
+  if (import.meta.env.VITE_WS_URL) {
+    return import.meta.env.VITE_WS_URL;
+  }
+  
+  // 로컬 개발 환경(Vite Proxy)일 때는 기존처럼 현재 브라우저 호스트를 사용
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   const host = window.location.host;
   return `${protocol}//${host}/ws`;
