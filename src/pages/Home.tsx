@@ -51,10 +51,10 @@ export default function Home() {
   const { connect, disconnect } = useSocketStore();
   // 스토어에서 상태와 타겟, 팀/대기열 정보 가져오기
   const { currentTarget, status, highestBid, highestBidder, bidLogs, teams, waitingPlayers, unbidPlayers, bidRemainSeconds, auctionType } = useAuctionStore();
-  
+
   // 타이머 훅 초기화 (기본 15초)
   const { timeLeft, formattedTime, startOrReset, stop: stopTimer } = useAuctionTimer(15);
-  
+
   // 직접 입력 입찰가 상태
   const [customBid, setCustomBid] = useState<string>("");
 
@@ -126,7 +126,7 @@ export default function Home() {
     try {
       await api.post('/auction/bid', { bidPoint: amount });
       // 성공 후에는 굳이 입력창을 비우지 않거나, 상황에 따라 비울 수 있습니다.
-      // 여기서는 다음 입찰을 위해 일단 유지하거나 비우는 것을 선택할 수 있는데, 
+      // 여기서는 다음 입찰을 위해 일단 유지하거나 비우는 것을 선택할 수 있는데,
       // 깔끔함을 위해 비웁니다.
       setCustomBid("");
     } catch (error) {
@@ -147,7 +147,7 @@ export default function Home() {
   return (
     <div className="min-h-screen overflow-x-auto bg-slate-100/80 p-3 dark:bg-slate-950">
       <div className="mx-auto grid min-h-[calc(100vh-1.5rem)] min-w-[1365px] max-w-[1880px] grid-cols-[240px_minmax(0,1fr)] gap-3">
-      
+
       {/* 1. 왼쪽 사이드바 (팀 상태 영역) */}
       <Card className="flex h-[calc(100vh-1.5rem)] flex-col border-emerald-200 bg-white shadow-sm dark:bg-slate-900">
         <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800 flex flex-row items-center justify-between">
@@ -168,7 +168,7 @@ export default function Home() {
                 const queenOrPrincess = team.members.find(m => m.role === 'QUEEN' || m.role === 'PRINCESS');
                 const leader = team.members.find(m => m.role === 'LEADER');
                 const regularMembers = team.members.filter(m => m.role === 'PLAYER');
-                
+
                 // 리더의 이름이 있으면 팀 이름으로 사용, 없으면 N팀
                 const teamName = queenOrPrincess ? queenOrPrincess.chzzkName : `${idx + 1}`;
 
@@ -176,54 +176,54 @@ export default function Home() {
                   <div key={idx} className="p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="text-lg">{queenOrPrincess?.role === 'QUEEN' ? '👑' : '👸'}</span>
+                        <span className="text-lg">{queenOrPrincess?.role === 'QUEEN' ? '👑' : '🎀'}</span>
                         <span className="font-bold text-slate-900 dark:text-slate-100">{teamName} 팀</span>
                       </div>
                       <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 font-bold">
                         {team.point} pt
                       </Badge>
                     </div>
-                    
+
                     <Separator className="bg-slate-100 dark:bg-slate-800" />
-                    
+
                     <div className="space-y-1">
                       {/* 여왕/공주 렌더링 */}
                       {queenOrPrincess && (
-                        <TeamMemberRow 
-                          name={queenOrPrincess.chzzkName} 
-                          position={queenOrPrincess.position} 
+                        <TeamMemberRow
+                          name={queenOrPrincess.chzzkName}
+                          position={queenOrPrincess.position}
                           tier={queenOrPrincess.tier}
                           imgUrl={queenOrPrincess.imgUrl}
-                          isCaptain={false} 
+                          isCaptain={false}
                         />
                       )}
 
                       {/* 팀장 렌더링 */}
                       {leader ? (
-                        <TeamMemberRow 
-                          name={leader.chzzkName} 
-                          position={leader.position} 
+                        <TeamMemberRow
+                          name={leader.chzzkName}
+                          position={leader.position}
                           tier={leader.tier}
                           imgUrl={leader.imgUrl}
-                          isCaptain 
+                          isCaptain
                         />
                       ) : (
                         <div className="text-xs text-slate-400 italic p-1.5 text-center bg-slate-50 dark:bg-slate-800/50 rounded-md border border-dashed border-slate-200 dark:border-slate-700 mt-1">
                           팀장 미정
                         </div>
                       )}
-                      
+
                       {/* 일반 팀원 렌더링 */}
                       {regularMembers.map((player, pIdx) => (
-                        <TeamMemberRow 
-                          key={`player-${pIdx}`} 
-                          name={player.chzzkName} 
-                          position={player.position} 
+                        <TeamMemberRow
+                          key={`player-${pIdx}`}
+                          name={player.chzzkName}
+                          position={player.position}
                           tier={player.tier}
                           imgUrl={player.imgUrl}
                         />
                       ))}
-                      
+
                       {/* 빈 슬롯 표시 */}
                       {(!leader && regularMembers.length === 0) && (
                         <div className="text-xs text-slate-400 italic p-1.5 text-center border-t border-dashed border-slate-100 dark:border-slate-800 mt-2 pt-2">
@@ -241,7 +241,7 @@ export default function Home() {
 
       {/* 메인 콘텐츠 영역 (중앙 상/하단) */}
       <div className="grid min-h-0 grid-rows-[auto_minmax(0,1fr)_300px] gap-3">
-        
+
         {/* 상단 관리자 전용 컨트롤 패널 (ADMIN일 때만 보임) */}
         {isAdmin && (
           <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-700 bg-slate-800 p-3 text-slate-200 shadow-sm">
@@ -268,13 +268,13 @@ export default function Home() {
 
         {/* 상단 (현재 경매 영역) */}
         <div className="grid h-full min-h-0 grid-cols-[360px_minmax(0,1fr)] gap-3">
-          
+
           {/* 2-1. 현재 입찰 대상 프로필 */}
           <Card className="relative flex h-full min-h-0 flex-col items-center overflow-hidden border-2 border-emerald-300 bg-emerald-50/50 px-4 pb-3 pt-16 shadow-md dark:bg-slate-900">
             {/* 장식용 코너 스타일 (스케치 반영) */}
             <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-emerald-500 rounded-tl-xl m-2 opacity-50"></div>
             <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-emerald-500 rounded-tr-xl m-2 opacity-50"></div>
-            
+
             <Badge className={`absolute top-4 text-sm px-3 py-1 mb-2 shadow-sm ${status === 'IN_PROGRESS' || status === 'COUNTDOWN' ? 'bg-emerald-600 hover:bg-emerald-700 animate-pulse' : 'bg-slate-500 hover:bg-slate-600'}`}>
               {status === 'WAITING' ? '대기 중' : status === 'PREPARED' ? '입찰 대기' : status === 'COUNTDOWN' ? '시작 대기중' : status === 'CLOSED' ? '종료됨' : '경매 진행중'}
             </Badge>
@@ -285,7 +285,7 @@ export default function Home() {
                   <AvatarImage src={currentTarget.targetImgUrl || "/default.png"} className="object-cover" />
                   <AvatarFallback className="text-3xl bg-slate-100 text-slate-500">?</AvatarFallback>
                 </Avatar>
-                
+
                 <h2 className="mb-2 text-center text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
                   {currentTarget.targetName}
                 </h2>
@@ -309,7 +309,7 @@ export default function Home() {
                 {highestBid} <span className="text-base font-bold text-slate-400">pt</span>
               </div>
               <p className="text-base font-extrabold text-slate-800 dark:text-slate-200 mt-1.5 h-6 flex items-center justify-center">
-                {highestBidder ? `👑 입찰자: ${highestBidder}` : '-'}
+                {highestBidder ? `🖤 입찰자: ${highestBidder}` : '-'}
               </p>
             </div>
           </Card>
@@ -323,14 +323,14 @@ export default function Home() {
                 {status === 'COUNTDOWN' && <Badge variant="destructive" className="bg-amber-500 hover:bg-amber-600 animate-pulse text-xs">시작 대기중</Badge>}
               </CardTitle>
             </CardHeader>
-            
+
             {/* 입찰 로그 */}
             <div className="min-h-0 flex-1 overflow-hidden bg-white dark:bg-slate-950">
               <div className="h-full overflow-y-auto p-3">
                 <div className="space-y-2">
                   {!bidLogs.length && status === 'WAITING' && <div className="text-xs text-slate-500 text-center py-6">경매 대기 중입니다.</div>}
                   {!bidLogs.length && status === 'PREPARED' && <div className="text-xs text-emerald-600 font-bold text-center py-6">다음 매물이 준비되었습니다! 경매 시작을 기다려주세요.</div>}
-                
+
                   {bidLogs.map((log, idx) => (
                     <div key={`${log.time}-${idx}`} className={`p-2 rounded-lg border text-sm leading-tight ${log.isSystem ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 text-amber-800 dark:text-amber-300 font-semibold text-center' : 'bg-slate-50 dark:bg-slate-900 border-slate-100'}`}>
                       {log.message.split('\n').map((line: string, i: number) => (
@@ -355,14 +355,14 @@ export default function Home() {
                     <Button onClick={() => handleAddAmount(100)} variant="outline" className="flex-1 h-10 text-sm font-bold border-emerald-500 text-emerald-700 hover:bg-emerald-50">+ 100</Button>
                   </div>
                   <div className="flex gap-2">
-                    <Input 
-                      type="number" 
+                    <Input
+                      type="number"
                       placeholder={`현재가(${highestBid}pt)보다 높게 입력`}
                       value={customBid}
                       onChange={(e) => setCustomBid(e.target.value)}
                       className="h-10 border-slate-300 dark:border-slate-700 font-bold text-lg text-emerald-700"
                     />
-                    <Button 
+                    <Button
                       onClick={() => {
                         const amount = Number(customBid);
                         if (!customBid) {
@@ -371,7 +371,7 @@ export default function Home() {
                         }
                         if (amount > highestBid) handleBid(amount);
                         else toast.error('현재 최고 입찰가보다 큰 금액을 입력해주세요.');
-                      }} 
+                      }}
                       className="h-10 w-24 font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md"
                     >
                       입찰
@@ -389,7 +389,7 @@ export default function Home() {
 
         {/* 3. 하단 (대기열 및 타이머 영역) */}
         <div className="grid h-[300px] shrink-0 grid-cols-[minmax(0,1fr)_240px] gap-3">
-          
+
           {/* 3-1. 대기칸 (세로 스크롤) */}
           <Card className="flex-1 flex flex-col border-emerald-200 shadow-sm bg-emerald-50/30 dark:bg-slate-900 overflow-hidden min-h-0">
             <div className="px-4 py-2 bg-emerald-100/50 dark:bg-emerald-900/20 border-b border-emerald-100 dark:border-emerald-800/30 font-bold text-emerald-800 dark:text-emerald-400 text-sm shrink-0">
